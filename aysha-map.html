@@ -7,10 +7,8 @@
     <title>The U.A.E.’s Growing Space Sector</title>
 
     <!-- Leaflet CSS -->
-    <link rel="stylesheet"
-          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
     <style>
         :root {
@@ -59,7 +57,7 @@
             border-radius: 12px;
             padding: 10px 14px;
             font-size: 0.8rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
         }
 
         .legend-title {
@@ -82,9 +80,21 @@
             flex-shrink: 0;
         }
 
-        .legend-gov { background: #3b82f6; }     /* blue */
-        .legend-priv { background: #22c55e; }    /* green */
-        .legend-acad { background: #a855f7; }    /* purple */
+        .legend-gov {
+            background: #3b82f6;
+        }
+
+        /* blue */
+        .legend-priv {
+            background: #22c55e;
+        }
+
+        /* green */
+        .legend-acad {
+            background: #a855f7;
+        }
+
+        /* purple */
 
         /* Popup styling */
         .popup-card {
@@ -156,15 +166,13 @@
 
     <main>
         <!-- MAP ONLY -->
-        <div id="uae-map"
-             aria-label="Interactive map of space entities in the UAE"></div>
+        <div id="uae-map" aria-label="Interactive map of space entities in the UAE"></div>
     </main>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin="">
-    </script>
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="">
+        </script>
 
     <script>
         /* ========= DATA: UAE SPACE ENTITIES =========
@@ -323,10 +331,12 @@
 
         // === Map Init ===
         const map = L.map('uae-map', { zoomControl: true });
-
         L.tileLayer('https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap & CartoDB contributors'
-}).addTo(map);
+            attribution: '&copy; OpenStreetMap & CartoDB contributors'
+        }).addTo(map);
+
+
+
 
         const bounds = L.latLngBounds([22.6, 51.3], [26.5, 56.7]);
         map.fitBounds(bounds, { padding: [20, 20] });
@@ -396,4 +406,5 @@
     </script>
 
 </body>
+
 </html>
