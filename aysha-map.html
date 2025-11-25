@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The U.A.E.’s Growing Space Sector</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin="" />
+
+    <style>
+        :root {
+            --sand: #C2A57A;
+            --sand-dark: #A67C52;
+            --sand-light: #EAD9C4;
+            --ink: #2e2a28;
+            --card: #ffffff;
+            --muted: #f6f2ec;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+            color: var(--ink);
+        }
+
+        header {
+            position: relative;
+            z-index: 5;
+            padding: 16px 6%;
+        }
+
+        header h1 a {
+            text-decoration: none;
+            color: #000;
+        }
+
+        /* Layout – map only */
+        main {
+            padding: 0 6% 40px;
+        }
+
+        #uae-map {
+            width: 100%;
+            height: 80vh;
+            min-height: 420px;
+            border-radius: 16px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, .08);
+            outline: 1px solid rgba(0, 0, 0, .06);
+        }
+
+        /* Legend (as a Leaflet control) */
+        .legend {
+            background: var(--muted);
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 0.8rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        .legend-title {
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .legend-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .legend-color {
+            width: 11px;
+            height: 11px;
+            border-radius: 999px;
+            border: 2px solid rgba(0, 0, 0, 0.08);
+            flex-shrink: 0;
+        }
+
+        .legend-gov { background: #3b82f6; }     /* blue */
+        .legend-priv { background: #22c55e; }    /* green */
+        .legend-acad { background: #a855f7; }    /* purple */
+
+        /* Popup styling */
+        .popup-card {
+            max-width: 260px;
+        }
+
+        .popup-card h3 {
+            margin: 0 0 4px;
+            font-size: 1rem;
+        }
+
+        .popup-meta {
+            font-size: 0.78rem;
+            color: #6b7280;
+            margin-bottom: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: var(--sand-light);
+            color: #4b3b2b;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .type-label {
+            font-size: 0.74rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #f3f4f6;
+        }
+
+        .popup-card p {
+            margin: 0 0 6px;
+            font-size: 0.82rem;
+            line-height: 1.4;
+        }
+
+        .popup-card img {
+            width: 100%;
+            max-height: 130px;
+            object-fit: cover;
+            border-radius: 8px;
+            display: block;
+        }
+
+        .leaflet-container a {
+            color: #0d6efd;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="background-overlay"></div>
+
+    <header>
+        <h1>
+            <a href="code.html">
+                The U.A.E.’s Growing Space Sector
+            </a>
+        </h1>
+    </header>
+
+    <main>
+        <!-- MAP ONLY -->
+        <div id="uae-map"
+             aria-label="Interactive map of space entities in the UAE"></div>
+    </main>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin="">
+    </script>
+
+    <script>
+        /* ========= DATA: UAE SPACE ENTITIES =========
+           type: "government" | "private" | "academic"
+        */
+        const PLACES = [
+            // --- Government Entities ---
+            {
+                id: "mbrsc",
+                name: "Mohammed bin Rashid Space Centre (MBRSC)",
+                emirate: "Dubai",
+                type: "government",
+                lat: 25.2240,
+                lng: 55.3278,
+                img: "https://static.zawya.com/view/acePublic/alias/contentid/274ea387-a5ab-41b8-84dc-9cf305118610/2/mbrscxsummerspaceexplorercamp_ar2-jpg.webp?f=3%3A2&q=0.75&w=1600",
+                alt: "Mohammed bin Rashid Space Centre in Dubai",
+                blurb: "MBRSC leads many of the UAE’s flagship missions, including Earth-observation satellites, the Emirates Mars Mission (Hope), and the UAE Astronaut Programme."
+            },
+            {
+                id: "uae-space-agency",
+                name: "UAE Space Agency",
+                emirate: "Abu Dhabi",
+                type: "government",
+                lat: 24.4539,
+                lng: 54.3964,
+                img: "https://geospatialmedia.s3.amazonaws.com/wp-content/uploads/2017/11/UAE-Space-Agency.jpg",
+                alt: "UAE Space Agency logo",
+                blurb: "The federal body that regulates, organises, and develops the national space sector, coordinating space policy, strategy, and major national initiatives."
+            },
+
+            // --- Private Sector Players ---
+            {
+                id: "space42",
+                name: "Space42",
+                emirate: "Abu Dhabi (Al Maryah Island)",
+                type: "private",
+                lat: 24.5021,
+                lng: 54.3887,
+                img: "https://space42.ai/-/media/space42/news/defaut-image.ashx?h=203&la=en&w=294&hash=957A6C993DC6CB8716C07BEEF49F5E0673A588CE",
+                alt: "Space42 logo",
+                blurb: "An AI-powered SpaceTech company formed through the merger of Bayanat and Yahsat, delivering satellite communications, geospatial analytics, and AI-driven services."
+            },
+            {
+                id: "bayanat",
+                name: "Bayanat",
+                emirate: "Abu Dhabi (Al Nahyan)",
+                type: "private",
+                lat: 24.4641,
+                lng: 54.3876,
+                img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRkxHe50hLLbzSqFdP56JD9TBWv5kX3rgnFQ&s",
+                alt: "Bayanat logo",
+                blurb: "Specialises in geospatial and AI solutions, providing advanced mapping, positioning, and location-based intelligence across multiple sectors."
+            },
+            {
+                id: "yahsat",
+                name: "Yahsat",
+                emirate: "Abu Dhabi (Al Falah)",
+                type: "private",
+                lat: 24.55,
+                lng: 54.75,
+                img: "https://www.idirect.net//wp-content/uploads/2018/05/yahsat.png",
+                alt: "Yahsat satellite communications company logo",
+                blurb: "The UAE’s satellite communications operator, offering broadband, government, mobility, and broadcast services via a multi-satellite fleet."
+            },
+            {
+                id: "edge",
+                name: "EDGE Group – Space & Technology",
+                emirate: "Abu Dhabi",
+                type: "private",
+                lat: 24.4539,
+                lng: 54.3773,
+                img: "https://intlbm.com/wp-content/uploads/2024/09/EDGEs-new-Space-Company-will-serve-as-a-one-stop-shop-to-develop-space-capabilities-and-will-manufacture-satellite-technologies-in-the-UAE.png",
+                alt: "EDGE Group logo",
+                blurb: "A defence and advanced technology group that includes space-related capabilities such as satellites, payloads, and secure communications solutions."
+            },
+
+            // --- Academic & Research Institutions ---
+            {
+                id: "nsstc",
+                name: "NSSTC – National Space Science and Technology Center",
+                emirate: "Al Ain, Abu Dhabi",
+                type: "academic",
+                lat: 24.2007,
+                lng: 55.6760,
+                img: "https://www.esgrs.ae/wp-content/uploads/2023/06/Q_QGRSpf_400x400-1.jpg",
+                alt: "National Space Science and Technology Center at UAEU in Al Ain",
+                blurb: "A national research centre at UAEU focusing on satellite development, ground segment operations, and space-science research, including the 813 mission."
+            },
+            {
+                id: "khalifa-university",
+                name: "Khalifa University – Space & Aerospace",
+                emirate: "Abu Dhabi",
+                type: "academic",
+                lat: 24.4426,
+                lng: 54.4179,
+                img: "https://d2o0qhevodvs1u.cloudfront.net/adnec-glide-cache-production/containers/assets/events/2025/khalifa-university-graduation/khalifa-university-thumbnail.jpg/2c204f6690bb4bbdfb84fcabacd95494/khalifa-university-thumbnail.jpg",
+                alt: "Khalifa University logo",
+                blurb: "A leading STEM university hosting aerospace and space-related programmes, research labs, and collaborations in satellite engineering and space sciences."
+            },
+            {
+                id: "nyuad",
+                name: "NYU Abu Dhabi – Center for Space Science",
+                emirate: "Abu Dhabi (Saadiyat Island)",
+                type: "academic",
+                lat: 24.5237,
+                lng: 54.4347,
+                img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSmCYeLCKAeYthJpXNyCWkIWRJ9es5JGuHz5Q&s",
+                alt: "NYU Abu Dhabi campus logo",
+                blurb: "NYUAD conducts astrophysics and space-science research, contributing to international collaborations on cosmology, exoplanets, and high-energy astrophysics."
+            },
+            {
+                id: "saasst",
+                name: "SAASST – Sharjah Academy for Astronomy, Space Sciences, and Technology",
+                emirate: "Sharjah",
+                type: "academic",
+                lat: 25.2850,
+                lng: 55.4640,
+                img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_-MQHSk_EZNTLCYw5gUeXSbJ4mopF9ZVemA&s",
+                alt: "SAASST at University of Sharjah",
+                blurb: "A specialised academy at the University of Sharjah with observatories, a planetarium, and labs dedicated to astronomy, space sciences, and satellite research."
+            },
+            {
+                id: "tii",
+                name: "Technology Innovation Institute (TII) – Space & Advanced Research",
+                emirate: "Abu Dhabi (Yas Island)",
+                type: "academic",
+                lat: 24.5022,
+                lng: 54.5889,
+                img: "https://thequantuminsider.com/wp-content/uploads/2025/01/Untitled-design-4.png",
+                alt: "Technology Innovation Institute logo",
+                blurb: "A research institute under Abu Dhabi’s Advanced Technology Research Council, working on advanced technologies including space systems, AI, and robotics."
+            }
+        ];
+
+        /* ========= STYLE BY TYPE ========= */
+        const TYPE_STYLES = {
+            government: {
+                color: '#1d4ed8',   // stroke
+                fillColor: '#3b82f6'
+            },
+            private: {
+                color: '#15803d',
+                fillColor: '#22c55e'
+            },
+            academic: {
+                color: '#7c3aed',
+                fillColor: '#a855f7'
+            }
+        };
+
+        const TYPE_LABEL = {
+            government: "Government Entity",
+            private: "Private Sector Player",
+            academic: "Academic & Research Institution"
+        };
+
+        // === Map Init ===
+        const map = L.map('uae-map', { zoomControl: true });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        const bounds = L.latLngBounds([22.6, 51.3], [26.5, 56.7]);
+        map.fitBounds(bounds, { padding: [20, 20] });
+
+        // Popup HTML
+        function popupHtml(p) {
+            const tLabel = TYPE_LABEL[p.type] || "";
+            return `
+                <div class="popup-card">
+                    <h3>${p.name}</h3>
+                    <div class="popup-meta">
+                        <span class="badge">${p.emirate}</span>
+                        ${tLabel ? `<span class="type-label">${tLabel}</span>` : ""}
+                    </div>
+                    <p>${p.blurb}</p>
+                    <img src="${p.img}" alt="${p.alt}">
+                </div>
+            `;
+        }
+
+        // Marker creation with color based on type + popup
+        function makeMarker(p) {
+            const style = TYPE_STYLES[p.type] || {
+                color: '#7c5a39',
+                fillColor: '#C2A57A'
+            };
+
+            const m = L.circleMarker([p.lat, p.lng], {
+                radius: 8,
+                weight: 2,
+                color: style.color,
+                fillColor: style.fillColor,
+                fillOpacity: 0.9
+            });
+
+            m.bindPopup(popupHtml(p));
+            return m;
+        }
+
+        const layerGroup = L.layerGroup().addTo(map);
+        PLACES.forEach(p => makeMarker(p).addTo(layerGroup));
+
+        // Legend as a Leaflet control
+        const legend = L.control({ position: 'bottomleft' });
+
+        legend.onAdd = function (map) {
+            const div = L.DomUtil.create('div', 'legend');
+            div.innerHTML = `
+                <div class="legend-title">Legend</div>
+                <div class="legend-row">
+                    <span class="legend-color legend-gov"></span>
+                    <span>Government entities</span>
+                </div>
+                <div class="legend-row">
+                    <span class="legend-color legend-priv"></span>
+                    <span>Private-sector players</span>
+                </div>
+                <div class="legend-row">
+                    <span class="legend-color legend-acad"></span>
+                    <span>Academic & research institutions</span>
+                </div>
+            `;
+            return div;
+        };
+
+        legend.addTo(map);
+    </script>
+
+</body>
+</html>
