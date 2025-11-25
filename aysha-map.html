@@ -324,9 +324,9 @@
         // === Map Init ===
         const map = L.map('uae-map', { zoomControl: true });
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+        L.tileLayer('https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap & CartoDB contributors'
+}).addTo(map);
 
         const bounds = L.latLngBounds([22.6, 51.3], [26.5, 56.7]);
         map.fitBounds(bounds, { padding: [20, 20] });
